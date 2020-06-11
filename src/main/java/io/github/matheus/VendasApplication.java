@@ -1,7 +1,7 @@
 package io.github.matheus;
 
 import io.github.matheus.domain.entity.Cliente;
-import io.github.matheus.domain.repositorio.Clientes;
+import io.github.matheus.domain.repository.Clientes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -18,35 +18,13 @@ public class VendasApplication {
         return args -> {
 
             System.out.println("Salvando Clientes");
-            clientes.salvar(new Cliente("Matheus Carvalho"));
-            clientes.salvar(new Cliente("Teuzin dus vrauuu"));
+            clientes.save(new Cliente("Matheus Carvalho"));
+            clientes.save(new Cliente("Teuzin dus vrauuu"));
 
-            List<Cliente> todosClientes = clientes.obterTodos();
-            todosClientes.forEach(System.out::println);
+            List<Cliente> result = clientes.encontrarPorNome("Matheus Carvalho");
+            result.forEach(System.out::println);
 
-            System.out.println("Atualizando Clientes");
-            todosClientes.forEach(c -> {
-                c.setName(c.getNome() + " atualizado.");
-                clientes.atualizar(c);
-            });
 
-            todosClientes = clientes.obterTodos();
-            todosClientes.forEach(System.out::println);
-
-            System.out.println("Buscando Clientes por nome");
-            clientes.buscarPorNome("vra").forEach(System.out::println);
-
-            System.out.println("Deletando Clientes");
-            clientes.obterTodos().forEach(c -> {
-                clientes.deletar(c);
-            });
-
-            todosClientes = clientes.obterTodos();
-            if (todosClientes.isEmpty()) {
-                System.out.println("Nenhum cliente encontrado");
-            } else {
-                todosClientes.forEach(System.out::println);
-            }
 
         };
     }
