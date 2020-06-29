@@ -4,10 +4,12 @@ import io.github.matheus.domain.entity.Cliente;
 import io.github.matheus.domain.entity.ItemPedido;
 import io.github.matheus.domain.entity.Pedido;
 import io.github.matheus.domain.entity.Produto;
+import io.github.matheus.domain.enums.StatusPedido;
 import io.github.matheus.domain.repository.Clientes;
 import io.github.matheus.domain.repository.ItensPedido;
 import io.github.matheus.domain.repository.Pedidos;
 import io.github.matheus.domain.repository.Produtos;
+import io.github.matheus.exception.PedidoNaoEncontradoException;
 import io.github.matheus.exception.RegraNegocioException;
 import io.github.matheus.rest.dto.ItemPedidoDTO;
 import io.github.matheus.rest.dto.PedidoDTO;
@@ -34,15 +36,19 @@ public class PedidoServiceImpl implements PedidoService {
     @Override
     @Transactional
     public Pedido salvar(PedidoDTO dto) {
+
         Integer idCliente = dto.getCliente();
+
         Cliente cliente = clientesRespository
                 .findById(idCliente)
-                .orElseThrow(() -> new RegraNegocioException("Código de cliente inválido."));
+                .orElseThrow(() ->
+                        new RegraNegocioException("Código de cliente inválido."));
 
         Pedido pedido = new Pedido();
         pedido.setTotal(dto.getTotal());
         pedido.setDataPedido(LocalDate.now());
         pedido.setCliente(cliente);
+        pedido.setStatus(StatusPedido.REALIZADO);
 
         List<ItemPedido> itemPedido = converterItens(pedido, dto.getItens());
 
@@ -55,20 +61,36 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public Optional<Pedido> obterPedidoCompleto(Integer id) {
+
         return pedidosRepository.findByIdFetchItens(id);
+    }
+
+    @Override
+    @Transactional
+    public void atualizaStatus(Integer id, StatusPedido status) {
+        pedidosRepository
+                .findById(id)
+                .map(pedido -> {
+                    pedido.setStatus(status);
+                    return pedidosRepository.save(pedido);
+                }).orElseThrow(() -> new PedidoNaoEncontradoException() );
     }
 
     private List<ItemPedido> converterItens(Pedido pedido, List<ItemPedidoDTO> itens) {
         if (itens.isEmpty()) {
             throw new RegraNegocioException("Não é possível realizar um pedido sem itens");
+
         }
 
         return itens
                 .stream()
                 .map(dto -> {
                     Integer idProduto = dto.getProduto();
+
                     Produto produto = produtosRepository.findById(idProduto)
-                            .orElseThrow(() -> new RegraNegocioException("Código de produto inválido:" + idProduto));
+                            .orElseThrow(() ->
+                           new RegraNegocioException("Código de produto inválido:" + idProduto));
+
                     ItemPedido itemPedido = new ItemPedido();
                     itemPedido.setQuantidade(dto.getQuantidade());
                     itemPedido.setPedido(pedido);
