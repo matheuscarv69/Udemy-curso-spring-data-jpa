@@ -14,8 +14,7 @@ import javax.persistence.*;
 public class ItemPedido {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)    @Column(name = "id")
     private Integer id;
 
     @ManyToOne
