@@ -52,6 +52,7 @@ public class ClienteController {
         return clientes.save(cliente);
     }
 
+
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Integer id) {
